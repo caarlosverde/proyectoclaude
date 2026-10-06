@@ -1,0 +1,42 @@
+import type { Invoice } from "./types";
+
+export const sampleInvoice: Invoice = {
+  id: "demo",
+  kind: "factura",
+  number: "F2026-0042",
+  status: "emitida",
+  issueDate: "2026-10-01",
+  dueDate: "2026-10-31",
+  issuer: {
+    name: "Laura Martín Estudio",
+    taxId: "12345678Z",
+    address: "C/ Gran Vía 28, 3ºB",
+    city: "Madrid",
+    postalCode: "28013",
+    country: "España",
+    email: "hola@lauramartin.es",
+  },
+  client: {
+    name: "Nébula Software S.L.",
+    taxId: "B12345674",
+    address: "Av. Diagonal 640",
+    city: "Barcelona",
+    postalCode: "08017",
+    country: "España",
+    email: "pagos@nebula.io",
+  },
+  items: [
+    { id: "1", description: "Diseño de identidad visual", quantity: 1, unitPrice: 1200, discount: 0, vat: 21 },
+    { id: "2", description: "Landing page responsive", quantity: 1, unitPrice: 950, discount: 10, vat: 21 },
+    { id: "3", description: "Horas de consultoría UX", quantity: 6, unitPrice: 65, discount: 0, vat: 21 },
+  ],
+  irpf: 15,
+  surcharge: false,
+  currency: "EUR",
+  notes: "Gracias por confiar en mi trabajo.",
+  paymentInfo: "Transferencia: ES91 2100 0418 4502 0005 1332",
+  template: "moderna",
+  accent: "#4f46e5",
+  createdAt: "2026-10-01T10:00:00Z",
+  updatedAt: "2026-10-01T10:00:00Z",
+};
