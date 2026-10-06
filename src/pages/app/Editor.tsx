@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate, useParams, useSearchParams } from "react-router";
+import { findProfession } from "../../content/professions";
 import { Link } from "../../components/nav";
 import { ArrowLeft, Check, Copy, Crown, Eye, FileDown, Loader2, Pencil, Plus, Save, Trash2, UserPlus } from "lucide-react";
 import { Badge, Button, Card, Field, Input, Select, Textarea, cx } from "../../components/ui";
@@ -27,8 +28,9 @@ function newItem(vat: number): LineItem {
   return { id: uid(), description: "", quantity: 1, unitPrice: 0, discount: 0, vat };
 }
 
-function blankDoc(kind: DocKind): Invoice {
+function blankDoc(kind: DocKind, preset?: string): Invoice {
   const s = getState();
+  const prof = findProfession(preset);
   const st = s.settings;
   const today = todayISO();
   const pro = isPro(s);
@@ -41,8 +43,8 @@ function blankDoc(kind: DocKind): Invoice {
     dueDate: addDays(today, st.defaultDueDays),
     issuer: { ...st.issuer },
     client: emptyParty(),
-    items: [newItem(st.defaultVat)],
-    irpf: st.defaultIrpf,
+    items: prof ? prof.lines.map((l) => ({ ...newItem(l.vat), ...l })) : [newItem(st.defaultVat)],
+    irpf: prof ? prof.irpf : st.defaultIrpf,
     surcharge: false,
     currency: st.currency,
     notes: st.notes,
@@ -56,6 +58,8 @@ function blankDoc(kind: DocKind): Invoice {
 
 export default function Editor() {
   const { id, kind } = useParams();
+  const [search] = useSearchParams();
+  const preset = search.get("plantilla") ?? undefined;
   const navigate = useNavigate();
   const upgrade = useUpgrade();
   const toast = useToast();
@@ -65,7 +69,7 @@ export default function Editor() {
   const logo = useStore((s) => s.settings.logo);
   const pro = useStore((s) => isPro(s));
 
-  const [doc, setDoc] = useState<Invoice>(() => existing ?? blankDoc(kind === "presupuesto" ? "presupuesto" : "factura"));
+  const [doc, setDoc] = useState<Invoice>(() => existing ?? blankDoc(kind === "presupuesto" ? "presupuesto" : "factura", preset));
   const [tab, setTab] = useState<"editar" | "vista">("editar");
   const [saved, setSaved] = useState(false);
   const [dirty, setDirty] = useState(false);
@@ -77,8 +81,8 @@ export default function Editor() {
 
   useEffect(() => {
     if (!isNew) return;
-    setDoc(blankDoc(kind === "presupuesto" ? "presupuesto" : "factura"));
-  }, [kind, isNew]);
+    setDoc(blankDoc(kind === "presupuesto" ? "presupuesto" : "factura", preset));
+  }, [kind, isNew, preset]);
 
   useEffect(() => {
     document.title = `${doc.kind === "factura" ? "Factura" : "Presupuesto"} ${doc.number} — Facturo`;

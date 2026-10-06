@@ -21,7 +21,6 @@ export default function AppLayout() {
 
   useEffect(() => {
     refreshOverdue();
-    document.title = "Facturo — Mis facturas";
   }, []);
 
   return (

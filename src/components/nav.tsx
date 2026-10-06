@@ -1,11 +1,16 @@
 import { forwardRef, type AnchorHTMLAttributes, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
-import { useLocation, useNavigate } from "react-router";
+import { useHref, useLocation, useNavigate } from "react-router";
 import { buttonClass, cx, type ButtonSize, type ButtonVariant } from "./ui";
 
 /**
- * Navegación interna que no depende de que el navegador procese <a href>.
- * Funciona igual en un dominio propio, dentro de un iframe aislado o en móvil.
+ * Navegación interna que no depende de que el navegador procese <a href>:
+ * el clic se gestiona siempre en la app. Funciona igual en un dominio propio,
+ * dentro de un iframe aislado o en móvil. En la web normal el enlace lleva
+ * href real (para buscadores, abrir en otra pestaña, etc.); en la versión
+ * embebible no, porque el visor podría interceptarlo.
  */
+const EMBEDDED = import.meta.env.VITE_ROUTER === "memory";
+const norm = (p: string) => (p.length > 1 ? p.replace(/\/+$/, "") : p);
 type Props = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & { to: string; children: ReactNode };
 
 /** Lleva el inicio de la app a la vista (ventana y contenedores que la envuelvan). */
@@ -30,19 +35,24 @@ export function scrollToId(id: string) {
 
 function useGo(to: string) {
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const { pathname: rawPath, search } = useLocation();
+  const pathname = norm(rawPath);
   return () => {
     const [path, hash] = to.split("#");
-    const target = path || pathname;
-    if (target !== pathname || !hash) navigate(target);
+    const here = pathname + search;
+    const target = path || here;
+    if (target !== here) navigate(target);
     if (hash) scrollToId(hash);
-    else if (target === pathname) scrollAppTop();
+    else if (target === here) scrollAppTop();
   };
 }
 
 export const Link = forwardRef<HTMLAnchorElement, Props>(function Link({ to, onClick, children, ...rest }, ref) {
   const go = useGo(to);
+  const href = useHref(to);
   const handle = (e: MouseEvent<HTMLAnchorElement>) => {
+    // Ctrl/Cmd + clic o clic central: dejar que el navegador abra otra pestaña.
+    if (!EMBEDDED && (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1)) return;
     e.preventDefault();
     e.stopPropagation();
     onClick?.(e);
@@ -55,14 +65,14 @@ export const Link = forwardRef<HTMLAnchorElement, Props>(function Link({ to, onC
     }
   };
   return (
-    <a ref={ref} role="link" tabIndex={0} {...rest} onClick={handle} onKeyDown={onKey} className={cx("cursor-pointer", rest.className)}>
+    <a ref={ref} href={EMBEDDED ? undefined : href} role={EMBEDDED ? "link" : undefined} tabIndex={0} {...rest} onClick={handle} onKeyDown={EMBEDDED ? onKey : undefined} className={cx("cursor-pointer", rest.className)}>
       {children}
     </a>
   );
 });
 
 export function NavLink({ to, end, className, children }: { to: string; end?: boolean; className: (s: { isActive: boolean }) => string; children: ReactNode }) {
-  const { pathname } = useLocation();
+  const pathname = norm(useLocation().pathname);
   const isActive = end ? pathname === to : pathname === to || pathname.startsWith(to + "/");
   return (
     <Link to={to} className={className({ isActive })} aria-current={isActive ? "page" : undefined}>

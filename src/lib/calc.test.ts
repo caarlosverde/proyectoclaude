@@ -86,3 +86,15 @@ describe("utilidades", () => {
     expect(isValidSpanishTaxId("B12345674")).toBe(true);
   });
 });
+
+import { hourlyRate } from "./hourly";
+
+describe("precio por hora", () => {
+  it("cubre sueldo neto, impuestos, gastos y cuota", () => {
+    const r = hourlyRate({ netMonthly: 2000, expensesMonthly: 100, quotaMonthly: 300, taxRate: 20, weeksOff: 6, billableHours: 25 });
+    // 24.000 / 0,8 = 30.000 + 4.800 de gastos y cuota = 34.800 / (46·25 = 1.150 h)
+    expect(r.revenueYear).toBe(34800);
+    expect(r.hoursYear).toBe(1150);
+    expect(r.rate).toBe(30.26);
+  });
+});

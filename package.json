@@ -6,12 +6,13 @@
   "description": "Facturo — generador de facturas y presupuestos para autónomos y freelancers",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && node scripts/prerender.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc -b --noEmit",
     "build:embed": "node scripts/build-embed.mjs",
-    "build:pages": "tsc -b && VITE_ROUTER=hash vite build --base ./"
+    "build:pages": "tsc -b && BASE_PATH=/proyectoclaude/ VITE_SITE_URL=https://caarlosverde.github.io/proyectoclaude node scripts/prerender.mjs",
+    "build:spa": "tsc -b && vite build"
   },
   "dependencies": {
     "jspdf": "^4.2.1",

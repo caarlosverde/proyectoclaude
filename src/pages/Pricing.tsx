@@ -1,8 +1,6 @@
 import { PricingCards, SiteShell } from "../components/Site";
-import { useTitle } from "../lib/useTitle";
 
 export default function Pricing() {
-  useTitle("Precios — Facturo", "Facturo es gratis para empezar. Pasa a Pro por 6,99 €/mes para facturas ilimitadas, logo propio e informes trimestrales.");
   return (
     <SiteShell>
       <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">

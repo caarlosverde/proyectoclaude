@@ -50,14 +50,27 @@ Sin enlace configurado, la app funciona en **modo demo** (el botón «Pasar a Pr
 
 > **Importante antes de cobrar en serio:** al no haber servidor, la activación de Pro se guarda en el navegador y un usuario técnico podría activarla a mano. Para producción, el siguiente paso es añadir una función serverless (Vercel/Netlify/Cloudflare) que verifique el pago con el webhook de Stripe y emita una licencia firmada, y sincronizar datos entre dispositivos (p. ej. Supabase). La arquitectura está preparada para ello: todo el estado pasa por `src/store/store.ts`.
 
-## Despliegue
+## Despliegue y SEO
 
-- **GitHub Pages (incluido):** cada push publica la web automáticamente con `.github/workflows/deploy-pages.yml` en la rama `gh-pages`. La primera vez, activa *Settings → Pages → Source: Deploy from a branch → `gh-pages` / root* si GitHub no lo hace solo. Quedará en `https://<usuario>.github.io/<repo>/`.
+`npm run build` compila la app y **prerenderiza cada página pública** (portada, precios, calculadoras, páginas por profesión y guías) como HTML completo, con su propio `<title>`, descripción, URL canónica, Open Graph y datos estructurados (schema.org). También genera `sitemap.xml` y `robots.txt`. La app privada (`/app/...`) se sirve desde `app.html` y lleva `noindex`.
 
-- **Vercel:** importa el repo; `vercel.json` ya incluye la reescritura SPA.
-- **Netlify / Cloudflare Pages:** comando `npm run build`, carpeta `dist`; `public/_redirects` ya está incluido.
+### Recomendado: Vercel con dominio propio
 
-Actualiza el dominio en `index.html` (canonical/OG), `public/robots.txt` y `public/sitemap.xml`.
+1. Importa el repositorio en [vercel.com](https://vercel.com) (comando `npm run build`, carpeta `dist`; `vercel.json` ya incluye las reglas).
+2. En *Settings → Environment Variables* añade `VITE_SITE_URL` con tu dominio, por ejemplo `https://facturo.es`, y vuelve a desplegar.
+3. En *Settings → Domains* conecta el dominio que hayas comprado.
+4. Da de alta el dominio en [Google Search Console](https://search.google.com/search-console). Si eliges verificar con etiqueta HTML, pon el código en la variable `GOOGLE_SITE_VERIFICATION` y vuelve a desplegar. Después envía `https://tudominio/sitemap.xml` en *Sitemaps*.
+
+Netlify y Cloudflare Pages funcionan igual (`public/_redirects` ya está incluido).
+
+### GitHub Pages (incluido)
+
+Cada push publica la web automáticamente con `.github/workflows/deploy-pages.yml` en la rama `gh-pages`, también prerenderizada y con URLs limpias, en `https://<usuario>.github.io/<repo>/`. Sirve para enseñar el proyecto; para posicionar es mejor un dominio propio.
+
+### Añadir contenido
+
+- **Profesiones:** añade una entrada en `src/content/professions.ts` → se crea `/factura-para/<slug>`, entra en el sitemap y el editor acepta `?plantilla=<slug>`.
+- **Guías:** añade una entrada en `src/content/guides.ts` → se crea `/guias/<slug>`.
 
 ## Estructura
 

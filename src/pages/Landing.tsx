@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { LinkButton } from "../components/nav";
+import { Link, LinkButton } from "../components/nav";
+import { JsonLd } from "../seo/JsonLd";
+import { professions } from "../content/professions";
+import { guides } from "../content/guides";
+import { SITE_URL } from "../seo/seo";
+import { BookOpen, Clock3 } from "lucide-react";
 import {
   ArrowRight, BellRing, Calculator, ChevronDown, CircleCheck, FileDown, FileSpreadsheet,
   Lock, Palette, Receipt, Shield, TrendingUp, Users, Zap,
@@ -161,6 +166,47 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* RECURSOS */}
+      <section className="border-t border-slate-100 bg-white py-24">
+        <div className="mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-2">
+          <div>
+            <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Modelos de factura por profesión</h2>
+            <p className="mt-3 text-slate-600">Con el IVA y la retención de cada oficio, y los conceptos de ejemplo ya rellenos.</p>
+            <div className="mt-6 flex flex-wrap gap-2">
+              {professions.map((p) => (
+                <Link key={p.slug} to={`/factura-para/${p.slug}`} className="rounded-full bg-slate-100 px-4 py-2 text-sm font-medium capitalize text-slate-700 transition hover:bg-brand-50 hover:text-brand-700">
+                  {p.plural}
+                </Link>
+              ))}
+            </div>
+            <div className="mt-10 grid gap-3 sm:grid-cols-2">
+              <Link to="/calculadora-iva-irpf" className="flex items-center gap-3 rounded-2xl p-4 ring-1 ring-slate-200 transition hover:ring-brand-200 hover:shadow-md">
+                <span className="rounded-xl bg-brand-50 p-2.5 text-brand-600"><Calculator size={18} /></span>
+                <span className="text-sm font-semibold">Calculadora de IVA e IRPF</span>
+              </Link>
+              <Link to="/calculadora-precio-hora" className="flex items-center gap-3 rounded-2xl p-4 ring-1 ring-slate-200 transition hover:ring-brand-200 hover:shadow-md">
+                <span className="rounded-xl bg-brand-50 p-2.5 text-brand-600"><Clock3 size={18} /></span>
+                <span className="text-sm font-semibold">¿Cuánto cobrar por hora?</span>
+              </Link>
+            </div>
+          </div>
+          <div>
+            <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Guías para autónomos</h2>
+            <p className="mt-3 text-slate-600">Facturación e impuestos explicados con ejemplos y sin jerga.</p>
+            <ul className="mt-6 divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200">
+              {guides.map((g) => (
+                <li key={g.slug}>
+                  <Link to={`/guias/${g.slug}`} className="flex items-start gap-3 px-5 py-4 transition hover:bg-slate-50">
+                    <BookOpen size={18} className="mt-0.5 shrink-0 text-brand-600" />
+                    <span className="text-sm font-medium leading-snug text-slate-800">{g.title}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
       {/* PRICING */}
       <section id="precios" className="scroll-mt-20 bg-slate-50 py-24">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -204,6 +250,29 @@ export default function Landing() {
           </div>
         </div>
       </section>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          name: "Facturo",
+          url: SITE_URL + "/",
+          applicationCategory: "BusinessApplication",
+          operatingSystem: "Web",
+          inLanguage: "es",
+          description: "Generador de facturas y presupuestos para autónomos y freelancers con IVA e IRPF automáticos.",
+          offers: [
+            { "@type": "Offer", price: "0", priceCurrency: "EUR", name: "Gratis" },
+            { "@type": "Offer", price: "6.99", priceCurrency: "EUR", name: "Pro mensual" },
+          ],
+        }}
+      />
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+        }}
+      />
     </SiteShell>
   );
 }

@@ -6,13 +6,8 @@ import { Card, Field, Input, Select, cx } from "../components/ui";
 import { IRPF_RATES, VAT_RATES } from "../lib/config";
 import { computeTotals, reverseFromNet } from "../lib/calc";
 import { money } from "../lib/format";
-import { useTitle } from "../lib/useTitle";
 
 export default function Calculator() {
-  useTitle(
-    "Calculadora de IVA e IRPF para autónomos 2026 — Facturo",
-    "Calcula al instante el IVA, la retención de IRPF y el total de tu factura. También a la inversa: cuánto facturar para cobrar un neto concreto.",
-  );
   const [mode, setMode] = useState<"base" | "neto">("base");
   const [amount, setAmount] = useState(1000);
   const [vat, setVat] = useState(21);

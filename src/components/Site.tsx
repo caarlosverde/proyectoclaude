@@ -9,8 +9,8 @@ import { money } from "../lib/format";
 const links = [
   { to: "/#funciones", label: "Funciones" },
   { to: "/calculadora-iva-irpf", label: "Calculadora IVA/IRPF" },
+  { to: "/guias", label: "Guías" },
   { to: "/precios", label: "Precios" },
-  { to: "/#faq", label: "Preguntas" },
 ];
 
 export function SiteHeader() {
@@ -62,7 +62,7 @@ export function SiteHeader() {
 export function SiteFooter() {
   return (
     <footer className="border-t border-slate-200 bg-white">
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-4">
+      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-5">
         <div className="md:col-span-2">
           <Logo />
           <p className="mt-3 max-w-sm text-sm text-slate-500">
@@ -76,6 +76,15 @@ export function SiteFooter() {
             <li><Link className="hover:text-slate-900" to="/app/nuevo/presupuesto">Generador de presupuestos</Link></li>
             <li><Link className="hover:text-slate-900" to="/calculadora-iva-irpf">Calculadora IVA e IRPF</Link></li>
             <li><Link className="hover:text-slate-900" to="/precios">Precios</Link></li>
+          </ul>
+        </div>
+        <div className="text-sm">
+          <div className="mb-3 font-semibold">Recursos</div>
+          <ul className="space-y-2 text-slate-500">
+            <li><Link className="hover:text-slate-900" to="/guias">Guías para autónomos</Link></li>
+            <li><Link className="hover:text-slate-900" to="/factura-para">Factura por profesión</Link></li>
+            <li><Link className="hover:text-slate-900" to="/calculadora-precio-hora">Precio por hora</Link></li>
+            <li><Link className="hover:text-slate-900" to="/guias/modelo-303-iva-trimestral">Modelo 303</Link></li>
           </ul>
         </div>
         <div className="text-sm">

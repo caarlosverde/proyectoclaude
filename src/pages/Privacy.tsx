@@ -1,8 +1,6 @@
 import { SiteShell } from "../components/Site";
-import { useTitle } from "../lib/useTitle";
 
 export default function Privacy() {
-  useTitle("Privacidad — Facturo");
   return (
     <SiteShell>
       <article className="mx-auto max-w-3xl px-4 py-16 text-slate-700 sm:px-6">
