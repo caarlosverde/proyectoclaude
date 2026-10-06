@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /app
+
+Sitemap: https://caarlosverde.github.io/proyectoclaude/sitemap.xml
