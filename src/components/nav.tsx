@@ -8,6 +8,16 @@ import { buttonClass, cx, type ButtonSize, type ButtonVariant } from "./ui";
  */
 type Props = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & { to: string; children: ReactNode };
 
+/** Lleva el inicio de la app a la vista (ventana y contenedores que la envuelvan). */
+export function scrollAppTop() {
+  window.scrollTo(0, 0);
+  try {
+    document.getElementById("root")?.scrollIntoView({ block: "start", behavior: "instant" as ScrollBehavior });
+  } catch {
+    /* navegadores antiguos */
+  }
+}
+
 export function scrollToId(id: string) {
   let tries = 0;
   const tick = () => {
@@ -26,7 +36,7 @@ function useGo(to: string) {
     const target = path || pathname;
     if (target !== pathname || !hash) navigate(target);
     if (hash) scrollToId(hash);
-    else if (target === pathname) window.scrollTo({ top: 0, behavior: "smooth" });
+    else if (target === pathname) scrollAppTop();
   };
 }
 

@@ -13,6 +13,10 @@ export default defineConfig(({ mode }) => {
     // jsPDF carga estos módulos solo para html()/SVG, que no usamos: los sustituimos por un módulo vacío.
     resolve: { alias: { html2canvas: empty, dompurify: empty, canvg: empty } },
     // La versión embebible se genera como un único archivo JS (sin chunks dinámicos).
-    build: embedded ? { rollupOptions: { output: { inlineDynamicImports: true } } } : {},
+    build: {
+      // Compatibilidad amplia: iPhone/iPad con iOS 14+, Chrome/Edge/Firefox de los últimos años.
+      target: ["es2020", "safari14", "chrome87", "firefox78", "edge88"],
+      ...(embedded ? { rollupOptions: { output: { inlineDynamicImports: true } } } : {}),
+    },
   };
 });
