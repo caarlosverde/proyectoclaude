@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc -b --noEmit",
-    "build:embed": "node scripts/build-embed.mjs"
+    "build:embed": "node scripts/build-embed.mjs",
+    "build:pages": "tsc -b && VITE_ROUTER=hash vite build --base ./"
   },
   "dependencies": {
     "jspdf": "^4.2.1",

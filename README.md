@@ -52,6 +52,8 @@ Sin enlace configurado, la app funciona en **modo demo** (el botón «Pasar a Pr
 
 ## Despliegue
 
+- **GitHub Pages (incluido):** cada push publica la web automáticamente con `.github/workflows/deploy-pages.yml` en la rama `gh-pages`. La primera vez, activa *Settings → Pages → Source: Deploy from a branch → `gh-pages` / root* si GitHub no lo hace solo. Quedará en `https://<usuario>.github.io/<repo>/`.
+
 - **Vercel:** importa el repo; `vercel.json` ya incluye la reescritura SPA.
 - **Netlify / Cloudflare Pages:** comando `npm run build`, carpeta `dist`; `public/_redirects` ya está incluido.
 
