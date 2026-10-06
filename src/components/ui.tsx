@@ -5,8 +5,9 @@ export function cx(...c: (string | false | null | undefined)[]) {
   return c.filter(Boolean).join(" ");
 }
 
-type Variant = "primary" | "secondary" | "ghost" | "danger" | "dark";
-const variants: Record<Variant, string> = {
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "dark";
+export type ButtonSize = "sm" | "md" | "lg";
+const variants: Record<ButtonVariant, string> = {
   primary: "bg-brand-600 text-white hover:bg-brand-700 shadow-sm shadow-brand-600/20",
   secondary: "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50 hover:ring-slate-300",
   ghost: "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
@@ -14,25 +15,25 @@ const variants: Record<Variant, string> = {
   dark: "bg-slate-900 text-white hover:bg-slate-800",
 };
 
+export function buttonClass(variant: ButtonVariant = "primary", size: ButtonSize = "md", className?: string) {
+  return cx(
+    "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition select-none disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 cursor-pointer active:scale-[0.98]",
+    size === "sm" && "px-2.5 py-1.5 text-xs",
+    size === "md" && "px-3.5 py-2 text-sm",
+    size === "lg" && "px-5 py-3 text-base",
+    variants[variant],
+    className,
+  );
+}
+
 export function Button({
   variant = "primary",
   size = "md",
   className,
+  type = "button",
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: "sm" | "md" | "lg" }) {
-  return (
-    <button
-      {...props}
-      className={cx(
-        "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 cursor-pointer",
-        size === "sm" && "px-2.5 py-1.5 text-xs",
-        size === "md" && "px-3.5 py-2 text-sm",
-        size === "lg" && "px-5 py-3 text-base",
-        variants[variant],
-        className,
-      )}
-    />
-  );
+}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant; size?: ButtonSize }) {
+  return <button type={type} {...props} className={buttonClass(variant, size, className)} />;
 }
 
 export const inputCls =
@@ -97,7 +98,7 @@ export function Modal({ open, onClose, children, wide }: { open: boolean; onClos
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={onClose} />
-      <div className={cx("relative w-full rounded-2xl bg-white shadow-2xl", wide ? "max-w-3xl" : "max-w-md")}>
+      <div role="dialog" aria-modal="true" className={cx("relative max-h-[92vh] w-full overflow-y-auto rounded-2xl bg-white shadow-2xl", wide ? "max-w-3xl" : "max-w-md")}>
         <button onClick={onClose} className="absolute right-3 top-3 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer" aria-label="Cerrar">
           <X size={18} />
         </button>

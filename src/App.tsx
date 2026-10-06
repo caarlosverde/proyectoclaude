@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router";
 import { UpgradeProvider } from "./components/Upgrade";
+import { FeedbackProvider } from "./components/Feedback";
 import Landing from "./pages/Landing";
 import Pricing from "./pages/Pricing";
 import Calculator from "./pages/Calculator";
@@ -20,6 +21,7 @@ function ScrollToTop() {
 
 export default function App() {
   return (
+    <FeedbackProvider>
     <UpgradeProvider>
       <ScrollToTop />
       <Routes>
@@ -38,5 +40,6 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </UpgradeProvider>
+    </FeedbackProvider>
   );
 }

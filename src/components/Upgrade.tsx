@@ -4,6 +4,7 @@ import { Button, Modal } from "./ui";
 import { FREE_MONTHLY_LIMIT, PRO_PRICE_MONTHLY, PRO_PRICE_YEARLY, STRIPE_PRO_LINK } from "../lib/config";
 import { activatePro } from "../store/store";
 import { money } from "../lib/format";
+import { useToast } from "./Feedback";
 
 export const PRO_FEATURES = [
   "Facturas y presupuestos ilimitados",
@@ -25,6 +26,7 @@ export function UpgradeProvider({ children }: { children: ReactNode }) {
   const [reason, setReason] = useState<string | null>(null);
   const open = useCallback((r?: string) => setReason(r ?? "Desbloquea todo el potencial de Facturo"), []);
   const close = useCallback(() => setReason(null), []);
+  const toast = useToast();
 
   const checkout = () => {
     if (STRIPE_PRO_LINK) {
@@ -33,6 +35,7 @@ export function UpgradeProvider({ children }: { children: ReactNode }) {
       // Modo demo: sin enlace de pago configurado se activa Pro localmente.
       activatePro();
       close();
+      toast("¡Ya eres Pro! Todo está desbloqueado.");
     }
   };
 

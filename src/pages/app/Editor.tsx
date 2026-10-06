@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router";
-import { ArrowLeft, Check, Copy, Crown, Eye, FileDown, Pencil, Plus, Save, Trash2, UserPlus } from "lucide-react";
+import { useNavigate, useParams } from "react-router";
+import { Link } from "../../components/nav";
+import { ArrowLeft, Check, Copy, Crown, Eye, FileDown, Loader2, Pencil, Plus, Save, Trash2, UserPlus } from "lucide-react";
 import { Badge, Button, Card, Field, Input, Select, Textarea, cx } from "../../components/ui";
 import { InvoiceDocument } from "../../components/InvoiceDocument";
 import { ScaledDoc } from "../../components/ScaledDoc";
-import { PrintPortal, printDocument } from "../../components/PrintPortal";
+import { useToast } from "../../components/Feedback";
+import { buildInvoicePdf, docFilename } from "../../lib/pdf";
+import { saveFile } from "../../lib/download";
 import { useUpgrade } from "../../components/Upgrade";
 import {
   canCreateClient, canCreateDoc, emptyParty, getState, isPro, nextNumber, saveClient, saveInvoice, useStore,
@@ -55,6 +58,8 @@ export default function Editor() {
   const { id, kind } = useParams();
   const navigate = useNavigate();
   const upgrade = useUpgrade();
+  const toast = useToast();
+  const [busy, setBusy] = useState(false);
   const existing = useStore((s) => (id ? s.invoices.find((i) => i.id === id) : undefined));
   const clients = useStore((s) => s.clients);
   const logo = useStore((s) => s.settings.logo);
@@ -107,15 +112,27 @@ export default function Editor() {
     setDoc(finalDoc);
     setDirty(false);
     setSaved(true);
+    if (!overrides.status) toast(isNew ? "Documento creado" : "Cambios guardados");
     setTimeout(() => setSaved(false), 2000);
     if (isNew) navigate(`/app/documentos/${finalDoc.id}`, { replace: true });
     return true;
   };
 
-  const download = () => {
+  const download = async () => {
     const overrides: Partial<Invoice> = doc.status === "borrador" ? { status: "emitida" } : {};
     if (!persist(overrides)) return;
-    setTimeout(() => printDocument(`${doc.kind === "factura" ? "Factura" : "Presupuesto"} ${doc.number}${doc.client.name ? " - " + doc.client.name : ""}`), 200);
+    setBusy(true);
+    try {
+      const finalDoc = { ...doc, ...overrides };
+      const blob = await buildInvoicePdf(finalDoc, { logo: pro ? logo : undefined, watermark: !pro });
+      const r = await saveFile(docFilename(finalDoc), blob);
+      if (r === "saved") toast("PDF descargado");
+      else if (r === "unavailable") toast("Este navegador no permite descargar archivos aquí", "error");
+    } catch {
+      toast("No se pudo generar el PDF. Inténtalo de nuevo.", "error");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const pickClient = (clientId: string) => {
@@ -131,6 +148,7 @@ export default function Editor() {
     const c = { ...doc.client, id: uid(), createdAt: new Date().toISOString() };
     saveClient(c);
     patch({ clientId: c.id });
+    toast("Cliente guardado");
   };
 
   const convertToInvoice = () => {
@@ -151,6 +169,7 @@ export default function Editor() {
     };
     saveInvoice({ ...doc, status: "aceptado" });
     saveInvoice(inv);
+    toast("Presupuesto aceptado y convertido en factura");
     navigate(`/app/documentos/${inv.id}`);
   };
 
@@ -170,6 +189,7 @@ export default function Editor() {
       updatedAt: new Date().toISOString(),
     };
     saveInvoice(copy);
+    toast("Documento duplicado");
     navigate(`/app/documentos/${copy.id}`);
   };
 
@@ -201,7 +221,7 @@ export default function Editor() {
           <Button variant="secondary" onClick={() => persist()}>
             {saved ? <Check size={16} className="text-emerald-600" /> : <Save size={16} />} Guardar
           </Button>
-          <Button onClick={download}><FileDown size={16} /> Descargar PDF</Button>
+          <Button onClick={download} disabled={busy}>{busy ? <Loader2 size={16} className="animate-spin" /> : <FileDown size={16} />} Descargar PDF</Button>
         </div>
       </div>
 
@@ -219,7 +239,7 @@ export default function Editor() {
           {/* Datos generales */}
           <Card className="p-5">
             <h2 className="mb-4 font-semibold">Datos del documento</h2>
-            <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-4 2xl:grid-cols-4">
               <Field label="Número"><Input value={doc.number} onChange={(e) => patch({ number: e.target.value })} /></Field>
               <Field label="Fecha de emisión"><Input type="date" value={doc.issueDate} onChange={(e) => patch({ issueDate: e.target.value })} /></Field>
               <Field label={doc.kind === "factura" ? "Vencimiento" : "Válido hasta"}><Input type="date" value={doc.dueDate} onChange={(e) => patch({ dueDate: e.target.value })} /></Field>
@@ -371,8 +391,6 @@ export default function Editor() {
           )}
         </div>
       </div>
-
-      <PrintPortal>{preview}</PrintPortal>
     </>
   );
 }

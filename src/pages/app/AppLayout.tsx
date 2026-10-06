@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { Link, NavLink, Outlet } from "react-router";
+import { Outlet } from "react-router";
+import { Link, LinkButton, NavLink } from "../../components/nav";
 import { Crown, FileText, LayoutDashboard, Plus, Settings, Sparkles, Users } from "lucide-react";
 import { Button, Logo, cx } from "../../components/ui";
 import { useUpgrade } from "../../components/Upgrade";
@@ -31,9 +32,7 @@ export default function AppLayout() {
           <Link to="/"><Logo /></Link>
         </div>
         <div className="px-4">
-          <Link to="/app/nuevo/factura">
-            <Button className="w-full"><Plus size={16} /> Nueva factura</Button>
-          </Link>
+          <LinkButton to="/app/nuevo/factura" className="w-full"><Plus size={16} /> Nueva factura</LinkButton>
         </div>
         <nav className="mt-6 flex-1 space-y-1 px-3">
           {nav.map((n) => (
@@ -73,7 +72,7 @@ export default function AppLayout() {
       {/* Mobile top bar */}
       <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-slate-200 bg-white/90 px-4 backdrop-blur lg:hidden print:hidden">
         <Link to="/"><Logo /></Link>
-        <Link to="/app/nuevo/factura"><Button size="sm"><Plus size={14} /> Nueva</Button></Link>
+        <LinkButton to="/app/nuevo/factura" size="sm"><Plus size={14} /> Nueva</LinkButton>
       </header>
 
       <main className="mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6 lg:px-8 lg:pb-10 lg:pt-8">
@@ -81,7 +80,7 @@ export default function AppLayout() {
       </main>
 
       {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-slate-200 bg-white lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
         {nav.map((n) => (
           <NavLink
             key={n.to}

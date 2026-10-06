@@ -1,13 +1,17 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router";
-import { CircleCheck, FileSpreadsheet, FileText, Plus, Receipt, Search, Trash2 } from "lucide-react";
+import { Link, LinkButton } from "../../components/nav";
+import { CircleCheck, FileDown, FileSpreadsheet, FileText, Plus, Receipt, Search, Trash2 } from "lucide-react";
+import { useConfirm, useToast } from "../../components/Feedback";
+import { saveFile } from "../../lib/download";
+import { buildInvoicePdf, docFilename } from "../../lib/pdf";
+import type { Invoice } from "../../lib/types";
 import { PageHeader } from "./AppLayout";
 import { Badge, Button, Card, Empty, Input, cx } from "../../components/ui";
 import { useUpgrade } from "../../components/Upgrade";
 import { deleteInvoice, isPro, setInvoiceStatus, useStore } from "../../store/store";
 import { computeTotals } from "../../lib/calc";
 import { date, money, todayISO } from "../../lib/format";
-import { download, invoicesToCsv } from "../../lib/csv";
+import { invoicesToCsv } from "../../lib/csv";
 
 const FILTERS = [
   { id: "todos", label: "Todos" },
@@ -21,6 +25,9 @@ export default function Documents() {
   const invoices = useStore((s) => s.invoices);
   const pro = useStore((s) => isPro(s));
   const upgrade = useUpgrade();
+  const confirm = useConfirm();
+  const toast = useToast();
+  const logo = useStore((s) => s.settings.logo);
   const [filter, setFilter] = useState<(typeof FILTERS)[number]["id"]>("todos");
   const [q, setQ] = useState("");
 
@@ -37,13 +44,34 @@ export default function Documents() {
       .sort((a, b) => b.issueDate.localeCompare(a.issueDate) || b.number.localeCompare(a.number));
   }, [invoices, filter, q]);
 
-  const exportCsv = () => {
+  const exportCsv = async () => {
     if (!pro) return upgrade("Exporta a Excel para tu gestoría");
-    download(`facturo-${todayISO()}.csv`, invoicesToCsv(list));
+    if (!list.length) return toast("No hay documentos que exportar", "info");
+    const r = await saveFile(`facturo-${todayISO()}.csv`, invoicesToCsv(list), "text/csv;charset=utf-8");
+    if (r === "saved") toast(`${list.length} documento(s) exportados`);
   };
 
-  const remove = (id: string, number: string) => {
-    if (confirm(`¿Eliminar ${number}? Esta acción no se puede deshacer.`)) deleteInvoice(id);
+  const pdf = async (inv: Invoice) => {
+    try {
+      const blob = await buildInvoicePdf(inv, { logo: pro ? logo : undefined, watermark: !pro });
+      const r = await saveFile(docFilename(inv), blob);
+      if (r === "saved") toast("PDF descargado");
+    } catch {
+      toast("No se pudo generar el PDF", "error");
+    }
+  };
+
+  const remove = async (id: string, number: string) => {
+    const ok = await confirm({ title: `¿Eliminar ${number}?`, text: "Esta acción no se puede deshacer.", confirmLabel: "Eliminar", danger: true });
+    if (ok) {
+      deleteInvoice(id);
+      toast(`${number} eliminado`);
+    }
+  };
+
+  const markPaid = (inv: Invoice) => {
+    setInvoiceStatus(inv.id, "pagada");
+    toast(`${inv.number} marcada como pagada`);
   };
 
   return (
@@ -54,8 +82,8 @@ export default function Documents() {
         actions={
           <>
             <Button variant="secondary" onClick={exportCsv}><FileSpreadsheet size={16} /> Exportar Excel</Button>
-            <Link to="/app/nuevo/presupuesto"><Button variant="secondary"><Receipt size={16} /> Presupuesto</Button></Link>
-            <Link to="/app/nuevo/factura"><Button><Plus size={16} /> Factura</Button></Link>
+            <LinkButton to="/app/nuevo/presupuesto" variant="secondary"><Receipt size={16} /> Presupuesto</LinkButton>
+            <LinkButton to="/app/nuevo/factura"><Plus size={16} /> Factura</LinkButton>
           </>
         }
       />
@@ -84,7 +112,7 @@ export default function Documents() {
             icon={<FileText size={28} />}
             title={invoices.length ? "No hay resultados" : "Todavía no hay documentos"}
             text={invoices.length ? "Prueba con otro filtro o búsqueda." : "Tu primera factura está a un clic."}
-            action={!invoices.length && <Link to="/app/nuevo/factura"><Button><Plus size={16} /> Crear factura</Button></Link>}
+            action={!invoices.length && <LinkButton to="/app/nuevo/factura"><Plus size={16} /> Crear factura</LinkButton>}
           />
         ) : (
           <div className="overflow-x-auto">
@@ -115,13 +143,16 @@ export default function Documents() {
                     <td className="px-5 py-3"><Badge tone={inv.status}>{inv.status}</Badge></td>
                     <td className="px-5 py-3 text-right font-semibold tabular-nums">{money(computeTotals(inv).total, inv.currency)}</td>
                     <td className="px-5 py-3">
-                      <div className="flex justify-end gap-1 opacity-100 transition md:opacity-0 md:group-hover:opacity-100">
+                      <div className="flex justify-end gap-1 opacity-100 transition lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100">
                         {inv.kind === "factura" && inv.status !== "pagada" && (
-                          <button title="Marcar como pagada" onClick={() => setInvoiceStatus(inv.id, "pagada")} className="rounded-lg p-1.5 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600 cursor-pointer">
+                          <button title="Marcar como pagada" onClick={() => markPaid(inv)} className="rounded-lg p-1.5 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600 cursor-pointer">
                             <CircleCheck size={16} />
                           </button>
                         )}
-                        <button title="Eliminar" onClick={() => remove(inv.id, inv.number)} className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 cursor-pointer">
+                        <button title="Descargar PDF" aria-label="Descargar PDF" onClick={() => pdf(inv)} className="rounded-lg p-1.5 text-slate-400 hover:bg-brand-50 hover:text-brand-600 cursor-pointer">
+                          <FileDown size={16} />
+                        </button>
+                        <button title="Eliminar" aria-label="Eliminar" onClick={() => remove(inv.id, inv.number)} className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 cursor-pointer">
                           <Trash2 size={16} />
                         </button>
                       </div>

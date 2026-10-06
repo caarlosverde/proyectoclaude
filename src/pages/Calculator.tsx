@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { LinkButton } from "../components/nav";
 import { ArrowRight, ArrowRightLeft } from "lucide-react";
 import { SiteShell } from "../components/Site";
-import { Button, Card, Field, Input, Select, cx } from "../components/ui";
+import { Card, Field, Input, Select, cx } from "../components/ui";
 import { IRPF_RATES, VAT_RATES } from "../lib/config";
 import { computeTotals, reverseFromNet } from "../lib/calc";
 import { money } from "../lib/format";
@@ -77,9 +77,7 @@ export default function Calculator() {
             <div className="mt-6 rounded-xl bg-white/5 p-4 text-xs leading-relaxed text-slate-300">
               Reserva <strong className="text-white">{money(res.vat)}</strong> para el modelo 303: ese IVA no es tuyo, es de Hacienda.
             </div>
-            <Link to="/app/nuevo/factura">
-              <Button className="mt-6 w-full">Crear factura con estos datos <ArrowRight size={16} /></Button>
-            </Link>
+            <LinkButton to="/app/nuevo/factura" className="mt-6 w-full">Crear factura con estos datos <ArrowRight size={16} /></LinkButton>
           </div>
         </Card>
 

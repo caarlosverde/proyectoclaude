@@ -65,7 +65,7 @@ function load(): State {
   }
 }
 
-let state: State = typeof localStorage !== "undefined" ? load() : initial();
+let state: State = load();
 const listeners = new Set<() => void>();
 
 function persist() {
@@ -138,6 +138,8 @@ export function saveInvoice(inv: Invoice) {
     const exists = s.invoices.some((i) => i.id === inv.id);
     const updated = { ...inv, updatedAt: new Date().toISOString() };
     const settings = { ...s.settings };
+    // La primera vez que el usuario rellena sus datos en una factura, los recordamos.
+    if (!settings.issuer.name.trim() && inv.issuer.name.trim()) settings.issuer = { ...inv.issuer };
     if (!exists) {
       if (inv.kind === "factura") settings.nextInvoiceNumber += 1;
       else settings.nextQuoteNumber += 1;

@@ -28,7 +28,7 @@ Además: presupuestos convertibles en factura con un clic, duplicar documentos, 
 
 ## Stack
 
-React 19 · TypeScript · Vite · Tailwind CSS v4 · React Router · Vitest. Sin backend: los datos se guardan en `localStorage`. El PDF se genera con el motor de impresión del navegador (calidad vectorial, texto seleccionable, sin dependencias).
+React 19 · TypeScript · Vite · Tailwind CSS v4 · React Router · jsPDF · Vitest. Sin backend: los datos se guardan en `localStorage`. El PDF se genera en el propio navegador con jsPDF (vectorial, texto seleccionable, multipágina) y funciona igual en móvil y ordenador.
 
 ## Puesta en marcha
 
@@ -37,6 +37,7 @@ npm install
 npm run dev        # http://localhost:5173
 npm test           # tests de cálculo fiscal y validaciones
 npm run build      # genera dist/ listo para desplegar
+npm run build:embed  # dist-embed/facturo.html: la app entera en un solo archivo (vistas previas, iframes)
 ```
 
 ## Monetización: conectar Stripe

@@ -3,6 +3,7 @@ import { Building2, Mail, Pencil, Plus, Trash2, Users } from "lucide-react";
 import { PageHeader } from "./AppLayout";
 import { Button, Card, Empty, Field, Input, Modal } from "../../components/ui";
 import { useUpgrade } from "../../components/Upgrade";
+import { useConfirm, useToast } from "../../components/Feedback";
 import { canCreateClient, deleteClient, emptyParty, saveClient, useStore } from "../../store/store";
 import type { Client } from "../../lib/types";
 import { computeTotals } from "../../lib/calc";
@@ -12,6 +13,8 @@ export default function Clients() {
   const clients = useStore((s) => s.clients);
   const invoices = useStore((s) => s.invoices);
   const upgrade = useUpgrade();
+  const confirm = useConfirm();
+  const toast = useToast();
   const [editing, setEditing] = useState<Client | null>(null);
 
   const billedTo = (c: Client) =>
@@ -47,7 +50,7 @@ export default function Clients() {
                 </div>
                 <div className="flex gap-1">
                   <button onClick={() => setEditing(c)} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer" aria-label="Editar"><Pencil size={15} /></button>
-                  <button onClick={() => confirm(`¿Eliminar a ${c.name}?`) && deleteClient(c.id)} className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 cursor-pointer" aria-label="Eliminar"><Trash2 size={15} /></button>
+                  <button onClick={async () => { if (await confirm({ title: `¿Eliminar a ${c.name}?`, text: "Sus facturas no se borrarán.", confirmLabel: "Eliminar", danger: true })) { deleteClient(c.id); toast("Cliente eliminado"); } }} className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 cursor-pointer" aria-label="Eliminar"><Trash2 size={15} /></button>
                 </div>
               </div>
               <div className="mt-4 space-y-1 text-sm text-slate-600">
@@ -70,6 +73,7 @@ export default function Clients() {
             onSubmit={(e) => {
               e.preventDefault();
               saveClient(editing);
+              toast(clients.some((c) => c.id === editing.id) ? "Cliente actualizado" : "Cliente añadido");
               setEditing(null);
             }}
           >

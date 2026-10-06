@@ -1,11 +1,14 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, HashRouter } from "react-router";
+import { BrowserRouter, HashRouter, MemoryRouter } from "react-router";
 import App from "./App";
 import "./index.css";
 
-// VITE_HASH_ROUTER=1 genera una versión que funciona en alojamientos sin reescritura de rutas.
-const Router = import.meta.env.VITE_HASH_ROUTER === "1" ? HashRouter : BrowserRouter;
+// VITE_ROUTER=memory: versión embebible (iframes aislados, vistas previas) que no toca la URL.
+// VITE_ROUTER=hash: alojamientos sin reescritura de rutas. Por defecto: URLs limpias.
+const mode = import.meta.env.VITE_ROUTER;
+document.documentElement.lang = "es";
+const Router = mode === "memory" ? MemoryRouter : mode === "hash" ? HashRouter : BrowserRouter;
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

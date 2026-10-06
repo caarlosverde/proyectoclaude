@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
-import { Link } from "react-router";
+import { Link, LinkButton } from "./nav";
 import { ArrowRight, Check, Menu, X } from "lucide-react";
-import { Button, Logo, cx } from "./ui";
+import { Logo, cx } from "./ui";
 import { FREE_CLIENT_LIMIT, FREE_MONTHLY_LIMIT, PRO_PRICE_MONTHLY, PRO_PRICE_YEARLY } from "../lib/config";
 import { PRO_FEATURES } from "./Upgrade";
 import { money } from "../lib/format";
@@ -21,38 +21,37 @@ export function SiteHeader() {
         <Link to="/" aria-label="Facturo, inicio">
           <Logo />
         </Link>
-        <nav className="hidden items-center gap-7 text-sm font-medium text-slate-600 md:flex">
+        <nav className="hidden items-center gap-7 text-sm font-medium text-slate-600 lg:flex">
           {links.map((l) => (
             <Link key={l.to} to={l.to} className="transition hover:text-slate-900">
               {l.label}
             </Link>
           ))}
         </nav>
-        <div className="hidden items-center gap-2 md:flex">
-          <Link to="/app">
-            <Button variant="ghost">Mis facturas</Button>
-          </Link>
-          <Link to="/app/nuevo/factura">
-            <Button>
-              Crear factura gratis <ArrowRight size={16} />
-            </Button>
-          </Link>
+        <div className="hidden items-center gap-2 lg:flex">
+          <LinkButton to="/app" variant="ghost">Mis facturas</LinkButton>
+          <LinkButton to="/app/nuevo/factura">
+            Crear factura gratis <ArrowRight size={16} />
+          </LinkButton>
         </div>
-        <button className="rounded-lg p-2 md:hidden" onClick={() => setOpen(!open)} aria-label="Menú">
+        <button className="-mr-2 rounded-lg p-2 text-slate-700 hover:bg-slate-100 lg:hidden cursor-pointer" onClick={() => setOpen(!open)} aria-label={open ? "Cerrar menú" : "Abrir menú"} aria-expanded={open}>
           {open ? <X /> : <Menu />}
         </button>
       </div>
       {open && (
-        <div className="border-t border-slate-200 bg-white px-4 py-4 md:hidden">
-          <div className="flex flex-col gap-3 text-sm font-medium">
+        <div className="border-t border-slate-200 bg-white px-4 pb-5 pt-2 shadow-lg lg:hidden">
+          <div className="flex flex-col text-base font-medium text-slate-700">
             {links.map((l) => (
-              <Link key={l.to} to={l.to} onClick={() => setOpen(false)}>
+              <Link key={l.to} to={l.to} onClick={() => setOpen(false)} className="rounded-lg px-2 py-3 hover:bg-slate-50">
                 {l.label}
               </Link>
             ))}
-            <Link to="/app/nuevo/factura">
-              <Button className="w-full">Crear factura gratis</Button>
+            <Link to="/app" onClick={() => setOpen(false)} className="rounded-lg px-2 py-3 hover:bg-slate-50">
+              Mis facturas
             </Link>
+            <LinkButton to="/app/nuevo/factura" size="lg" className="mt-3 w-full" onClick={() => setOpen(false)}>
+              Crear factura gratis <ArrowRight size={18} />
+            </LinkButton>
           </div>
         </div>
       )}
@@ -135,9 +134,7 @@ export function PricingCards() {
           <p className="mt-1 text-sm text-slate-500">Para empezar a facturar hoy mismo.</p>
           <div className="mt-6 text-4xl font-extrabold">0 €</div>
           <div className="text-sm text-slate-500">para siempre</div>
-          <Link to="/app/nuevo/factura">
-            <Button variant="secondary" size="lg" className="mt-6 w-full">Empezar gratis</Button>
-          </Link>
+          <LinkButton to="/app/nuevo/factura" variant="secondary" size="lg" className="mt-6 w-full">Empezar gratis</LinkButton>
           <ul className="mt-8 space-y-3">
             {free.map((f) => (
               <li key={f} className="flex gap-2.5 text-sm text-slate-700"><Check size={18} className="shrink-0 text-slate-400" />{f}</li>
@@ -153,9 +150,7 @@ export function PricingCards() {
             <span className="text-base font-medium text-slate-400">/mes</span>
           </div>
           <div className="text-sm text-slate-400">{yearly ? `${money(PRO_PRICE_YEARLY)} facturados al año` : "facturado mensualmente"} · IVA no incluido</div>
-          <Link to="/app/ajustes?plan=pro">
-            <Button size="lg" className="mt-6 w-full">Probar Pro</Button>
-          </Link>
+          <LinkButton to="/app/ajustes?plan=pro" size="lg" className="mt-6 w-full">Probar Pro</LinkButton>
           <ul className="mt-8 space-y-3">
             {PRO_FEATURES.map((f) => (
               <li key={f} className="flex gap-2.5 text-sm text-slate-200"><Check size={18} className="shrink-0 text-emerald-400" />{f}</li>

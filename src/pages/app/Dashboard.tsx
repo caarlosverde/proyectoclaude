@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router";
+import { Link, LinkButton } from "../../components/nav";
 import { AlertTriangle, ArrowRight, CircleCheck, Clock, FileText, Lock, Plus, Receipt, TrendingUp } from "lucide-react";
 import { PageHeader } from "./AppLayout";
 import { Badge, Button, Card, Empty, Select, cx } from "../../components/ui";
@@ -54,8 +54,8 @@ export default function Dashboard() {
         subtitle="Resumen de tu facturación y cobros"
         actions={
           <>
-            <Link to="/app/nuevo/presupuesto"><Button variant="secondary"><Receipt size={16} /> Presupuesto</Button></Link>
-            <Link to="/app/nuevo/factura"><Button><Plus size={16} /> Factura</Button></Link>
+            <LinkButton to="/app/nuevo/presupuesto" variant="secondary"><Receipt size={16} /> Presupuesto</LinkButton>
+            <LinkButton to="/app/nuevo/factura"><Plus size={16} /> Factura</LinkButton>
           </>
         }
       />
@@ -66,7 +66,7 @@ export default function Dashboard() {
             <div className="font-semibold">Completa tus datos fiscales</div>
             <div className="text-sm text-slate-500">Rellénalos una vez y aparecerán automáticamente en todas tus facturas.</div>
           </div>
-          <Link to="/app/ajustes"><Button variant="secondary">Completar ahora <ArrowRight size={16} /></Button></Link>
+          <LinkButton to="/app/ajustes" variant="secondary">Completar ahora <ArrowRight size={16} /></LinkButton>
         </Card>
       )}
 
@@ -100,7 +100,7 @@ export default function Dashboard() {
               <h2 className="font-semibold">Impuestos del trimestre</h2>
               <p className="text-xs text-slate-500">Modelos 303 y 130</p>
             </div>
-            <Select value={q} onChange={(e) => setQ(e.target.value)} className="!w-24 shrink-0 py-1 text-xs">
+            <Select value={q} onChange={(e) => setQ(e.target.value)} className="!w-28 shrink-0 py-1 text-xs">
               {quarterOptions.map((o) => <option key={o} value={o}>{o.split("-")[1]}T {o.split("-")[0]}</option>)}
             </Select>
           </div>
@@ -135,7 +135,7 @@ export default function Dashboard() {
             icon={<FileText size={28} />}
             title="Aún no has creado ningún documento"
             text="Crea tu primera factura en menos de un minuto. Los totales e impuestos se calculan solos."
-            action={<Link to="/app/nuevo/factura"><Button><Plus size={16} /> Crear factura</Button></Link>}
+            action={<LinkButton to="/app/nuevo/factura"><Plus size={16} /> Crear factura</LinkButton>}
           />
         ) : (
           <ul className="divide-y divide-slate-100">
@@ -149,8 +149,10 @@ export default function Dashboard() {
                     <div className="truncate text-sm font-medium">{inv.client.name || "Sin cliente"}</div>
                     <div className="text-xs text-slate-500">{inv.number} · {date(inv.issueDate)}</div>
                   </div>
-                  <Badge tone={inv.status}>{inv.status}</Badge>
-                  <div className="w-24 text-right text-sm font-semibold tabular-nums">{money(computeTotals(inv).total, inv.currency)}</div>
+                  <div className="flex flex-col items-end gap-1 sm:flex-row-reverse sm:items-center sm:gap-4">
+                    <div className="text-right text-sm font-semibold tabular-nums sm:w-24">{money(computeTotals(inv).total, inv.currency)}</div>
+                    <Badge tone={inv.status}>{inv.status}</Badge>
+                  </div>
                 </Link>
               </li>
             ))}

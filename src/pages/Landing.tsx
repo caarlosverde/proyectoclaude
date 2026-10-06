@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { LinkButton } from "../components/nav";
 import {
   ArrowRight, BellRing, Calculator, ChevronDown, CircleCheck, FileDown, FileSpreadsheet,
   Lock, Palette, Receipt, Shield, TrendingUp, Users, Zap,
 } from "lucide-react";
 import { PricingCards, SiteShell } from "../components/Site";
-import { Button, cx } from "../components/ui";
+import { cx } from "../components/ui";
 import { InvoiceDocument } from "../components/InvoiceDocument";
 import { ScaledDoc } from "../components/ScaledDoc";
 import { sampleInvoice } from "../lib/sample";
@@ -54,16 +54,12 @@ export default function Landing() {
               El generador de facturas y presupuestos para autónomos y freelancers. IVA e IRPF automáticos, PDF profesional y control de cobros. Sin registro, sin complicaciones.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link to="/app/nuevo/factura">
-                <Button size="lg" className="w-full sm:w-auto">
+              <LinkButton to="/app/nuevo/factura" size="lg" className="w-full sm:w-auto">
                   Crear mi primera factura <ArrowRight size={18} />
-                </Button>
-              </Link>
-              <Link to="/calculadora-iva-irpf">
-                <Button size="lg" variant="secondary" className="w-full sm:w-auto">
+                </LinkButton>
+              <LinkButton to="/calculadora-iva-irpf" size="lg" variant="secondary" className="w-full sm:w-auto">
                   <Calculator size={18} /> Calculadora IVA/IRPF
-                </Button>
-              </Link>
+                </LinkButton>
             </div>
             <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-500">
               {["Gratis para siempre", "Sin tarjeta", "Sin registro"].map((t) => (
@@ -140,9 +136,7 @@ export default function Landing() {
             ))}
           </div>
           <div className="mt-12 text-center">
-            <Link to="/app/nuevo/factura">
-              <Button size="lg">Probar ahora, es gratis <Zap size={18} /></Button>
-            </Link>
+            <LinkButton to="/app/nuevo/factura" size="lg">Probar ahora, es gratis <Zap size={18} /></LinkButton>
           </div>
         </div>
       </section>
@@ -206,9 +200,7 @@ export default function Landing() {
             <Shield className="mx-auto mb-4 opacity-80" size={36} />
             <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Tu próxima factura, lista en 30 segundos</h2>
             <p className="mx-auto mt-4 max-w-xl text-brand-100">Gratis, sin registro y sin tarjeta.</p>
-            <Link to="/app/nuevo/factura">
-              <Button size="lg" variant="secondary" className="mt-8">Crear factura gratis <ArrowRight size={18} /></Button>
-            </Link>
+            <LinkButton to="/app/nuevo/factura" size="lg" variant="secondary" className="mt-8">Crear factura gratis <ArrowRight size={18} /></LinkButton>
           </div>
         </div>
       </section>

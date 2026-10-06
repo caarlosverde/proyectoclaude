@@ -7,7 +7,8 @@ import { useUpgrade } from "../../components/Upgrade";
 import { activatePro, downgrade, exportBackup, importBackup, isPro, updateSettings, useStore } from "../../store/store";
 import type { Party, Settings as S } from "../../lib/types";
 import { IRPF_RATES, VAT_RATES } from "../../lib/config";
-import { download } from "../../lib/csv";
+import { saveFile } from "../../lib/download";
+import { useConfirm, useToast } from "../../components/Feedback";
 import { date, isValidSpanishTaxId, todayISO } from "../../lib/format";
 
 export default function Settings() {
@@ -17,7 +18,8 @@ export default function Settings() {
   const upgrade = useUpgrade();
   const [params, setParams] = useSearchParams();
   const [form, setForm] = useState<S>(settings);
-  const [notice, setNotice] = useState<string | null>(null);
+  const toast = useToast();
+  const confirm = useConfirm();
   const fileRef = useRef<HTMLInputElement>(null);
   const logoRef = useRef<HTMLInputElement>(null);
 
@@ -27,31 +29,42 @@ export default function Settings() {
   useEffect(() => {
     if (params.get("pro") === "activado") {
       activatePro();
-      setNotice("¡Bienvenido a Facturo Pro! Todas las funciones están desbloqueadas.");
+      toast("¡Bienvenido a Facturo Pro! Todo está desbloqueado.");
       setParams({}, { replace: true });
     } else if (params.get("plan") === "pro") {
       setParams({}, { replace: true });
       if (!pro) upgrade();
     }
-  }, [params, setParams, pro, upgrade]);
+  }, [params, setParams, pro, upgrade, toast]);
 
-  const flash = (msg: string) => {
-    setNotice(msg);
-    setTimeout(() => setNotice(null), 3000);
-  };
 
   const setIssuer = (p: Partial<Party>) => setForm({ ...form, issuer: { ...form.issuer, ...p } });
   const save = (e: React.FormEvent) => {
     e.preventDefault();
     updateSettings(form);
-    flash("Ajustes guardados");
+    toast("Ajustes guardados");
   };
 
   const onLogo = (file?: File) => {
     if (!file) return;
-    if (file.size > 500_000) return flash("El logo debe pesar menos de 500 KB");
+    if (!file.type.startsWith("image/")) return toast("Elige una imagen (PNG, JPG, SVG o WebP)", "error");
+    if (file.size > 5_000_000) return toast("La imagen debe pesar menos de 5 MB", "error");
     const reader = new FileReader();
-    reader.onload = () => updateSettings({ logo: String(reader.result) });
+    reader.onload = () => {
+      // Normalizamos a PNG de tamaño razonable: compatible con el PDF y ligero de guardar.
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, 600 / img.width, 240 / img.height);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round((img.width || 600) * scale));
+        canvas.height = Math.max(1, Math.round((img.height || 240) * scale));
+        canvas.getContext("2d")?.drawImage(img, 0, 0, canvas.width, canvas.height);
+        updateSettings({ logo: canvas.toDataURL("image/png") });
+        toast("Logo actualizado");
+      };
+      img.onerror = () => toast("No se pudo leer la imagen", "error");
+      img.src = String(reader.result);
+    };
     reader.readAsDataURL(file);
   };
 
@@ -59,12 +72,19 @@ export default function Settings() {
     if (!file) return;
     file.text().then((txt) => {
       try {
-        if (!confirm("Se reemplazarán todos tus datos actuales por los de la copia. ¿Continuar?")) return;
-        importBackup(txt);
-        flash("Copia restaurada correctamente");
+        JSON.parse(txt);
       } catch {
-        flash("El archivo no es una copia válida de Facturo");
+        return toast("El archivo no es una copia válida de Facturo", "error");
       }
+      confirm({ title: "¿Restaurar esta copia?", text: "Se reemplazarán todos tus datos actuales por los de la copia.", confirmLabel: "Restaurar", danger: true }).then((ok) => {
+        if (!ok) return;
+        try {
+          importBackup(txt);
+          toast("Copia restaurada correctamente");
+        } catch {
+          toast("El archivo no es una copia válida de Facturo", "error");
+        }
+      });
     });
   };
 
@@ -73,7 +93,6 @@ export default function Settings() {
   return (
     <>
       <PageHeader title="Ajustes" subtitle="Tus datos fiscales y preferencias por defecto" />
-      {notice && <div className="mb-6 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 ring-1 ring-emerald-200">{notice}</div>}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <form onSubmit={save} className="space-y-6 lg:col-span-2">
@@ -135,7 +154,7 @@ export default function Settings() {
             {pro ? (
               <>
                 <p className="text-sm text-slate-600">Tienes acceso a todas las funciones{plan.activatedAt ? ` desde el ${date(plan.activatedAt)}` : ""}.</p>
-                <Button variant="ghost" size="sm" className="mt-3" onClick={() => confirm("¿Volver al plan gratuito?") && downgrade()}>Volver al plan gratuito</Button>
+                <Button variant="ghost" size="sm" className="mt-3" onClick={async () => { if (await confirm({ title: "¿Volver al plan gratuito?", text: "Conservarás todos tus documentos.", confirmLabel: "Volver al gratuito" })) { downgrade(); toast("Has vuelto al plan gratuito", "info"); } }}>Volver al plan gratuito</Button>
               </>
             ) : (
               <>
@@ -163,18 +182,18 @@ export default function Settings() {
                 <ImagePlus size={22} /> Subir logo (PNG, JPG o SVG)
               </button>
             )}
-            <input ref={logoRef} type="file" accept="image/*" hidden onChange={(e) => onLogo(e.target.files?.[0])} />
+            <input ref={logoRef} type="file" accept="image/*" hidden onChange={(e) => { onLogo(e.target.files?.[0]); e.target.value = ""; }} />
           </Card>
 
           <Card className="p-5">
             <h2 className="mb-1 font-semibold">Copia de seguridad</h2>
             <p className="mb-4 text-sm text-slate-500">Tus datos viven en este navegador. Descarga una copia periódicamente o para pasarlos a otro dispositivo.</p>
             <div className="flex flex-col gap-2">
-              <Button variant="secondary" onClick={() => download(`facturo-copia-${todayISO()}.json`, exportBackup(), "application/json")}>
+              <Button variant="secondary" onClick={async () => { if ((await saveFile(`facturo-copia-${todayISO()}.json`, exportBackup(), "application/json")) === "saved") toast("Copia descargada"); }}>
                 <Download size={16} /> Descargar copia
               </Button>
               <Button variant="secondary" onClick={() => fileRef.current?.click()}><Upload size={16} /> Restaurar copia</Button>
-              <input ref={fileRef} type="file" accept="application/json" hidden onChange={(e) => onImport(e.target.files?.[0])} />
+              <input ref={fileRef} type="file" accept="application/json" hidden onChange={(e) => { onImport(e.target.files?.[0]); e.target.value = ""; }} />
             </div>
           </Card>
         </div>
